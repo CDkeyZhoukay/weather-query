@@ -1,5 +1,6 @@
 # weather-query
 Weather query 1.0 for Paytm software challege 
+[![weather-query](./readme.img/Login.jpg?raw=true)]
 
 ###A basic system for weather query with login function built in Node.js, following features included:
 
