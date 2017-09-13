@@ -90,23 +90,29 @@ exports.addNewAccount = function(newData, callback)
 
 exports.updateAccount = function(newData, callback)
 {
-	accounts.findOne({_id:getObjectId(newData.id)}, function(e, o){
-		o.name 		= newData.name;
-		o.email 	= newData.email;
-		o.country 	= newData.country;
-		if (newData.pass == ''){
-			accounts.save(o, {safe: true}, function(e) {
-				if (e) callback(e);
-				else callback(null, o);
-			});
-		}	else{
-			saltAndHash(newData.pass, function(hash){
-				o.pass = hash;
-				accounts.save(o, {safe: true}, function(e) {
-					if (e) callback(e);
-					else callback(null, o);
-				});
-			});
+	accounts.findOne({email:newData.email}, function(e, o) {
+		if (o && o.user != newData.user ){
+			callback('email-taken');
+		}	else{	
+			accounts.findOne({_id:getObjectId(newData.id)}, function(e, o){
+				o.name 		= newData.name;
+				o.email 	= newData.email;
+				o.country 	= newData.country;
+				if (newData.pass == ''){	
+					accounts.save(o, {safe: true}, function(e) {
+						if (e) callback(e);
+						else callback(null, o);
+					});
+				}	else{			
+					saltAndHash(newData.pass, function(hash){
+						o.pass = hash;
+						accounts.save(o, {safe: true}, function(e) {
+							if (e) callback(e);
+							else callback(null, o);
+						});
+					});
+				}
+			})
 		}
 	});
 }
