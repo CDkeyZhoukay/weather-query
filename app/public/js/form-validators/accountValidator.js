@@ -55,6 +55,12 @@ AccountValidator.prototype.showInvalidUserName = function()
 	this.showErrors(['That username is already in use.']);
 }
 
+AccountValidator.prototype.showErrorUpdatingAccount = function()
+{
+	this.controlGroups[2].addClass('error');
+	this.showErrors(['DB error when updating account.']);
+}
+
 AccountValidator.prototype.validateForm = function()
 {
 	var e = [];
