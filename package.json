@@ -1,0 +1,29 @@
+{
+  "name": "weather query",
+  "version": "1.0.0",
+  "description": "weather query app on top of Node.js, MongoDb and Openweather API",
+  "author": "Bill K Zhou <zhoukay@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/CDkeyZhoukay/weather-query.git"
+  },
+  "dependencies": {
+    "body-parser": "1.14.1",
+    "connect-mongo": "0.8.2",
+    "cookie-parser": "1.4.0",
+    "emailjs": "^1.0.4",
+    "errorhandler": "1.4.2",
+    "express": "4.15.4",
+    "express-session": "1.11.3",
+    "jade": "1.11.0",
+    "moment": "2.18.1",
+    "mongodb": "2.2.31",
+    "stylus": "0.52.4"
+  },
+  "engines": {
+    "node": "6.11.3"
+  },
+  "scripts": {
+    "start": "node app.js"
+  }
+}
