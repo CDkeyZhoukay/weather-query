@@ -49,4 +49,4 @@ To enable the password retrieval feature it is recommended that you create envir
 	export EMAIL_USER='your.email@gmail.com'
 	export EMAIL_PASS='1234'
 
-[![weather-query](./readme.img/Retrieve Password.jpg?raw=true)](https://nodejs-login.herokuapp.com)]
+[![weather-query](./readme.img/Retrieve Password.jpg?raw=true)]
