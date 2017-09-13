@@ -18,7 +18,8 @@
     "jade": "1.11.0",
     "moment": "2.18.1",
     "mongodb": "2.2.31",
-    "stylus": "0.52.4"
+    "stylus": "0.52.4",
+    "request": "2.75.0"
   },
   "engines": {
     "node": "6.11.3"
