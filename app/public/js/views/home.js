@@ -22,6 +22,8 @@ $(document).ready(function(){
 				av.showInvalidEmail();
 			}	else if (e.responseText == 'username-taken'){
 				av.showInvalidUserName();
+			}	else if (e.responseText == 'error-updating-account'){
+				av.showErrorUpdatingAccount();
 			}
 		}
 	});
