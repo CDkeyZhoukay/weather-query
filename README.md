@@ -29,8 +29,8 @@ Weather query 1.0 for Paytm software challege
 1. Install [Node.js](https://nodejs.org/) & [MongoDB](https://www.mongodb.org/) if you don't have yet.
 2. Clone this repository and install its dependencies.
 		
-		> git clone git://github.com/braitsch/node-login.git
-		> cd weather-query
+		> clone weather-query package to local
+		> goto local node.js folder
 		> npm install
 		
 3. In a separate command window start the MongoDB daemon.
