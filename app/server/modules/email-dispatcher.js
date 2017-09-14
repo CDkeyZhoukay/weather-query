@@ -5,15 +5,15 @@ module.exports = EM;
 EM.server = require("emailjs/email").server.connect(
 {
 	host 	    : process.env.EMAIL_HOST || 'smtp.gmail.com',
-	user 	    : process.env.EMAIL_USER || 'zhoukayca@gmail.com',
-	password    : process.env.EMAIL_PASS || 'Jonasgzx005467',
+	user 	    : process.env.EMAIL_USER || 'your.email@gmail.com',
+	password    : process.env.EMAIL_PASS || '1234',
 	ssl		    : true
 });
 
 EM.dispatchResetPasswordLink = function(account, callback)
 {
 	EM.server.send({
-		from         : process.env.EMAIL_FROM || 'Weather Query <zhoukayca@gmail.com>',
+		from         : process.env.EMAIL_FROM || 'Weather Query <your.email@gmail.com>',
 		to           : account.email,
 		subject      : 'Password Reset',
 		text         : 'something went wrong... :(',
