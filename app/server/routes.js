@@ -1,86 +1,222 @@
+	
+var CT = require('./modules/country-list');
+var SM = require('./modules/search-manager');
+var AM = require('./modules/account-manager');
+var EM = require('./modules/email-dispatcher');
 
-function AccountValidator()
-{
-// build array maps of the form inputs & control groups //
 
-	this.formFields = [$('#name-tf'), $('#email-tf'), $('#user-tf'), $('#pass-tf')];
-	this.controlGroups = [$('#name-cg'), $('#email-cg'), $('#user-cg'), $('#pass-cg')];
-	
-// bind the form-error modal window to this controller to display any errors //
-	
-	this.alert = $('.modal-form-errors');
-	this.alert.modal({ show : false, keyboard : true, backdrop : true});
-	
-	this.validateName = function(s)
-	{
-		return s.length >= 3;
-	}
-	
-	this.validatePassword = function(s)
-	{
-	// if user is logged in and hasn't changed their password, return ok
-		if ($('#userId').val() && s===''){
-			return true;
+module.exports = function(app) {
+
+// main login page //
+	app.get('/', function(req, res){
+	// check if the user's credentials are saved in a cookie //
+		if (req.cookies.user == undefined || req.cookies.pass == undefined){
+			res.render('login', { title: 'Hello - Please Login To Your Account' });
 		}	else{
-			return s.length >= 6;
+	// attempt automatic login //
+			AM.autoLogin(req.cookies.user, req.cookies.pass, function(o){
+				if (o != null){
+				    req.session.user = o;
+					res.redirect('/search');
+				}	else{
+					res.render('login', { title: 'Hello - Please Login To Your Account' });
+				}
+			});
 		}
-	}
+	});
 	
-	this.validateEmail = function(e)
-	{
-		var re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-		return re.test(e);
-	}
+	app.post('/', function(req, res){
+		AM.manualLogin(req.body['user'], req.body['pass'], function(e, o){
+			if (!o){
+				res.status(400).send(e);
+			}	else{
+				req.session.user = o;
+				res.cookie('user', o.user, { maxAge: 900000 });
+				res.cookie('pass', o.pass, { maxAge: 900000 });
+				res.status(200).send(o);
+			}
+		});
+	});
 	
-	this.showErrors = function(a)
-	{
-		$('.modal-form-errors .modal-body p').text('Please correct the following problems :');
-		var ul = $('.modal-form-errors .modal-body ul');
-			ul.empty();
-		for (var i=0; i < a.length; i++) ul.append('<li>'+a[i]+'</li>');
-		this.alert.modal('show');
-	}
+// search weather //	
+	app.get('/search', function(req, res) {
+		if (req.session.user == null){
+	// if user is not logged-in redirect back to login page //
+			res.redirect('/');
+		}	else{
+			res.render('search', { title : 'Search'});
+		}
+	});
+	
+	app.post('/search', function(req, res){
+		if (req.session.user == null){
+			res.redirect('/search');
+		}	else{
+			SM.searchOpenWeatherAPI(req.body['city'], function(e, o){
+			if (!o){
+				res.status(400).send(e);
+			}	else{
+				res.status(200).json(o);
+			}
+			});		
+			}			
+	});
+		
+// creating new accounts //
+	
+	app.get('/signup', function(req, res) {
+		res.render('signup', {  title: 'Signup', countries : CT });
+	});
+	
+	app.post('/signup', function(req, res){
+		AM.addNewAccount({
+			name 	: req.body['name'],
+			email 	: req.body['email'],
+			user 	: req.body['user'],
+			pass	: req.body['pass'],
+			country : req.body['country']
+		}, function(e){
+			if (e){
+				res.status(400).send(e);
+			}	else{
+				res.status(200).send('ok');
+			}
+		});
+	});
+	
+// account setting homepage //
+	
+	app.get('/home', function(req, res) {
+		if (req.session.user == null){
+	// if user is not logged-in redirect back to login page //
+			res.redirect('/');
+		}	else{
+			res.render('home', {
+				title : 'Control Panel',
+				countries : CT,
+				udata : req.session.user
+			});
+		}
+	});
+	
+	app.post('/home', function(req, res){
+		if (req.session.user == null){
+			res.redirect('/');
+		}	else{
+			AM.updateAccount({
+				id		: req.session.user._id,
+				user	: req.body['user'],
+				name	: req.body['name'],
+				email	: req.body['email'],
+				pass	: req.body['pass'],
+				country	: req.body['country']
+			}, function(e, o){
+				if (e){	
+					if (e == 'email-taken'){
+						res.status(400).send('email-taken');
+					}	else {
+						res.status(400).send('error-updating-account');
+					}														
+				}	else{
+					req.session.user = o;
+			// update the user's login cookies if they exists //
+					if (req.cookies.user != undefined && req.cookies.pass != undefined){
+						res.cookie('user', o.user, { maxAge: 900000 });
+						res.cookie('pass', o.pass, { maxAge: 900000 });	
+					}
+					res.status(200).send('ok');
+				}
+			});
+		}
+	});
 
-}
+	app.post('/logout', function(req, res){
+		res.clearCookie('user');
+		res.clearCookie('pass');
+		req.session.destroy(function(e){ res.status(200).send('ok'); });
+	})	
+	
+// password reset //
 
-AccountValidator.prototype.showInvalidEmail = function()
-{
-	this.controlGroups[1].addClass('error');
-	this.showErrors(['That email address is already in use.']);
-}
+	app.post('/lost-password', function(req, res){
+	// look up the user's account via their email //
+		AM.getAccountByEmail(req.body['email'], function(o){
+			if (o){
+				EM.dispatchResetPasswordLink(o, function(e, m){
+				// this callback takes a moment to return //
+				// TODO add an ajax loader to give user feedback //
+					if (!e){
+						res.status(200).send('ok');
+					}	else{
+						for (k in e) console.log('ERROR : ', k, e[k]);
+						res.status(400).send('unable to dispatch password reset');
+					}
+				});
+			}	else{
+				res.status(400).send('email-not-found');
+			}
+		});
+	});
 
-AccountValidator.prototype.showInvalidUserName = function()
-{
-	this.controlGroups[2].addClass('error');
-	this.showErrors(['That username is already in use.']);
-}
+	app.get('/reset-password', function(req, res) {
+		var email = req.query["e"];
+		var passH = req.query["p"];
+		AM.validateResetLink(email, passH, function(e){
+			if (e != 'ok'){
+				res.redirect('/');
+			} else{
+	// save the user's email in a session instead of sending to the client //
+				req.session.reset = { email:email, passHash:passH };
+				res.render('reset', { title : 'Reset Password' });
+			}
+		})
+	});
+	
+	app.post('/reset-password', function(req, res) {
+		var nPass = req.body['pass'];
+	// retrieve the user's email from the session to lookup their account and reset password //
+		var email = req.session.reset.email;
+	// destory the session immediately after retrieving the stored email //
+		req.session.destroy();
+		AM.updatePassword(email, nPass, function(e, o){
+			if (o){
+				res.status(200).send('ok');
+			}	else{
+				res.status(400).send('unable to update password');
+			}
+		})
+	});
 
-AccountValidator.prototype.showErrorUpdatingAccount = function()
-{
-	this.controlGroups[2].addClass('error');
-	this.showErrors(['DB error when updating account.']);
-}
-
-AccountValidator.prototype.validateForm = function()
-{
-	var e = [];
-	for (var i=0; i < this.controlGroups.length; i++) this.controlGroups[i].removeClass('error');
-	if (this.validateName(this.formFields[0].val()) == false) {
-		this.controlGroups[0].addClass('error'); e.push('Please Enter Your Name');
-	}
-	if (this.validateEmail(this.formFields[1].val()) == false) {
-		this.controlGroups[1].addClass('error'); e.push('Please Enter A Valid Email');
-	}
-	if (this.validateName(this.formFields[2].val()) == false) {
-		this.controlGroups[2].addClass('error');
-		e.push('Please Choose A Username');
-	}
-	if (this.validatePassword(this.formFields[3].val()) == false) {
-		this.controlGroups[3].addClass('error');
-		e.push('Password Should Be At Least 6 Characters');
-	}
-	if (e.length) this.showErrors(e);
-	return e.length === 0;
-}
+// delete account //
+	app.post('/delete', function(req, res){
+		AM.deleteAccount(req.body.id, function(e, obj){
+			if (!e){
+				res.clearCookie('user');
+				res.clearCookie('pass');
+				req.session.destroy(function(e){ res.status(200).send('ok'); });
+			}	else{
+				res.status(400).send('record not found');
+			}
+	    });
+	});
 
 	
+// view all accounts //
+	
+	app.get('/print', function(req, res) {
+		AM.getAllRecords( function(e, accounts){
+			res.render('print', { title : 'Account List', accts : accounts });
+		})
+	});	
+
+
+// delete all accounts //	
+	app.get('/reset', function(req, res) {
+		AM.delAllRecords(function(){
+			res.redirect('/print');	
+		});
+	});
+	
+	app.get('*', function(req, res) { res.render('404', { title: 'Page Not Found'}); });
+
+};
