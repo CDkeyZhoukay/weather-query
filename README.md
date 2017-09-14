@@ -46,7 +46,7 @@ Weather query 1.0 for Paytm software challege
 
 ##Password Retrieval
 
-To enable the password retrieval feature it is recommended that you create environment variables for your credentials instead of hard coding them into the [email dispatcher module](https://github.com/CDkeyZhoukay/weather-query.git/weather-query/app/server/modules/email-dispatcher.js).
+To enable the password retrieval feature it is recommended that you create environment variables for your credentials instead of hard coding them into the [email dispatcher module](https://github.com/CDkeyZhoukay/weather-query/blob/master/app/server/modules/email-dispatcher.js).
 
 	export EMAIL_HOST='smtp.gmail.com'
 	export EMAIL_USER='your.email@gmail.com'
