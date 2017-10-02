@@ -20,7 +20,10 @@ block content
 				label Cityname
 				input.form-control(type='text', id='city-tf', name='city')
 			.controls
-				button(type='submit').btn.btn-primary.button-search
+				button(type='submit')#btn-lucky.btn.button-lucky
+					span.glyphicon.glyphicon-heart
+					|   I'm feeling lucky			
+				button(type='submit')#btn-search.btn.btn-primary.button-search
 					span.glyphicon.glyphicon-search
 					|   Search
 			.clearfix
