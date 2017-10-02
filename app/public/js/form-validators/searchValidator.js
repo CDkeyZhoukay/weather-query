@@ -15,8 +15,9 @@ function SearchValidator()
 SearchValidator.prototype.validateForm = function()
 {	
 	var cityName = $('#city-tf').val();
+	var searchButton = $('#btn-search').data('clicked');
 
-	if (cityName.trim() == ''){
+	if (cityName.trim() == '' && searchButton == true){
 		this.showLoginError('ERROR', 'Please enter a valid city name');
 		return false;
 	}	else{
@@ -24,4 +25,3 @@ SearchValidator.prototype.validateForm = function()
 	}		
 
 }
-
