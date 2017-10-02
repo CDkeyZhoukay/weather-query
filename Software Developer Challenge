@@ -53,4 +53,7 @@ Add an “I’m feeling lucky button” that does a random search, but make sure
 Bill K Zhou:
 Unfortunately, I don't have enough time to work out this solution. My idea would be load the history to memory when user login and compare the random search if it is existing, add new one to the list then update it back to DB before user logout. 
 
+1 Oct 2017 update:
+Finally the 'I'm feeling lucky' was implemented by the solution of local storage/session storage. The main idea is first create a JSON file with all cities supported by OpenWeather API, then load them in local storage/session storage and when we need to randomly select a city we can retrieve one from it. After that, save the selected city in local storage/session storage for next time to compare if it is already viewed by the users previously. So this all depends on the client side and there is no cost in the server side to go through the user history. 
+
 Thanks for your time!
